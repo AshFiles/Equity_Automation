@@ -1,0 +1,68 @@
+//@version=6
+indicator("DMA 20-50-100-200 Entry/Exit Strategy", overlay=true)
+
+// ------------------------
+// Input Variables
+// ------------------------
+
+// Lengths for the Simple Moving Averages
+length200 = input.int(200, title="200 SMA Length", minval=1)
+length100 = input.int(100, title="100 SMA Length", minval=1)
+length50  = input.int(50,  title="50 SMA Length",  minval=1)
+length20  = input.int(20,  title="20 SMA Length",  minval=1)
+
+// ------------------------
+// Moving Averages Calculation
+// ------------------------
+
+// Calculate the Simple Moving Averages
+ma200 = ta.sma(close, length200)
+ma100 = ta.sma(close, length100)
+ma50  = ta.sma(close, length50)
+ma20  = ta.sma(close, length20)
+
+// ------------------------
+// Entry and Exit Conditions
+// ------------------------
+
+// Define the Entry Condition: ma200 > ma100 > ma50 > ma20 > close
+entry_condition = (ma200 > ma100) and (ma100 > ma50) and (ma50 > ma20) and (ma20 > close)
+
+// Define the Exit Condition: close > ma20 > ma50 > ma100 > ma200
+exit_condition = (close > ma20) and (ma20 > ma50) and (ma50 > ma100) and (ma100 > ma200)
+
+// ------------------------
+// Plotting Moving Averages
+// ------------------------
+
+// Plot the Moving Averages with Distinct Colors
+plot(ma200, color=color.red,    title="200 SMA")
+plot(ma100, color=color.orange, title="100 SMA")
+plot(ma50,  color=color.purple, title="50 SMA")
+plot(ma20,  color=color.green,  title="20 SMA")
+
+// ------------------------
+// Plotting Entry and Exit Markers
+// ------------------------
+
+// Plot Entry Signals
+plotshape(    entry_condition,     title="Entry Signal",     location=location.belowbar,     color=color.green,     style=shape.labelup,     size=size.large,     text="ENTRY",     textcolor=color.white)
+
+// Plot Exit Signals
+plotshape(exit_condition,     title="Exit Signal",     location=location.abovebar,     color=color.red,     style=shape.labeldown,     size=size.large,     text="EXIT",     textcolor=color.white)
+
+// ------------------------
+// Optional: Background Highlighting
+// ------------------------
+
+// Highlight the background for easy visualization (Optional)
+bgcolor(entry_condition ? color.new(color.green, 90) : na, title="Bullish Background")
+bgcolor(exit_condition  ? color.new(color.red, 90)   : na, title="Bearish Background")
+
+// ------------------------
+// Alert Conditions (Optional)
+// ------------------------
+
+// Enable alert conditions to receive notifications
+alertcondition(entry_condition, title="Entry Alert", message="DMA Entry Condition Met")
+alertcondition(exit_condition,  title="Exit Alert",  message="DMA Exit Condition Met")
