@@ -200,6 +200,14 @@ def main():
     # Create a DataFrame to display trade details
     trades_df = pd.DataFrame(trades)
 
+    # Ensure 'Status' column exists even if trades_df is empty
+    if trades_df.empty:
+        trades_df = pd.DataFrame(columns=[
+            'Entry Date', 'Exit Date', 'Holding Period (Months)',
+            'Buy Price', 'Sell Price', 'Profit/Loss',
+            'Effective Annual Gain (%)', 'Status'
+        ])
+
     # Display trade results with formatting
     if not trades_df.empty:
         print("\nTrade Summary:")
@@ -212,6 +220,11 @@ def main():
         trade_summary_filename = f"{stock_name}_trade_summary.csv"
         trades_df.to_csv(trade_summary_filename, index=False)
         print(f"\nTrade summary saved to '{trade_summary_filename}'.")
+    else:
+        # Create an empty trade summary file with headers if no trades were made
+        trade_summary_filename = f"{stock_name}_trade_summary.csv"
+        trades_df.to_csv(trade_summary_filename, index=False)
+        print(f"\nNo trades to save. Created empty trade summary file '{trade_summary_filename}'.")
 
     # Append to trade_logs.csv
     if not trades_df.empty:
@@ -219,22 +232,21 @@ def main():
         trades_df_logs = trades_df.copy()
         trades_df_logs.insert(0, 'Stock', stock_name)
 
-        # Ensure holding period is present for all trades
-        if 'Holding Period (Months)' not in trades_df_logs.columns:
-            trades_df_logs['Holding Period (Months)'] = ''
-
+        # Save to trade_logs.csv
         if not os.path.isfile(trade_logs_file):
             trades_df_logs.to_csv(trade_logs_file, index=False)
         else:
             trades_df_logs.to_csv(trade_logs_file, mode='a', header=False, index=False)
 
         print(f"Trade logs updated in '{trade_logs_file}'.")
+    else:
+        print(f"No trades to append to 'trade_logs.csv'.")
 
     # Update consolidated_trade_summary.csv
     consolidated_file = "consolidated_trade_summary.csv"
     total_profit = trades_df['Profit/Loss'].sum() if not trades_df.empty else 0
-    unrealized_pnl_final = unrealized_pnl if in_market else ''
-    number_of_entries = trades_df[trades_df['Status'] == 'Completed'].shape[0]
+    unrealized_pnl_final = round(unrealized_pnl, 2) if in_market else ''
+    number_of_entries = trades_df[trades_df['Status'] == 'Completed'].shape[0] if not trades_df.empty else 0
     if in_market:
         number_of_entries += 1  # Counting the current holding as an entry
 
@@ -243,7 +255,7 @@ def main():
         'Stock': stock_name,
         'Analysis Period': analysis_period,
         'Total Profit/Loss': round(total_profit, 2),
-        'Unrealized P/L': round(unrealized_pnl, 2) if in_market else '',
+        'Unrealized P/L': unrealized_pnl_final,
         'Number of Times Entered Market': number_of_entries
     }
     consolidated_df = pd.DataFrame([consolidated_data])
