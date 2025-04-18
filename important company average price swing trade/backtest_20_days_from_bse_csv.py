@@ -8,10 +8,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tabulate import tabulate
 
 '''
-note that in the graph the correct Running P&L is shown only when there is no active trade
-so try to keep a date range of data where there is no active trade present
+download the csv file from bse archive section, 
+when you run the script , choose that csv file
+
+note that in the table the correct Running P&L and profit & loss calculation is shown only when there is no active holding.
+so try to keep a date range of data where there is no active holding present for that stock.
 how to check that ?
-use trading view
+use trading view with pine script to make sure that in that date range, we have exited the market.
 '''
 
 class GraphWindow:
