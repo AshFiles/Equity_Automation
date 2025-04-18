@@ -17,7 +17,7 @@ how to check that ?
 use trading view with pine script to make sure that in that date range, we have exited the market.
 '''
 # this target profit percent is % above the average at which we want to sell, not absolute percent increment
-target_profit_percent = 2.5
+target_profit_percent = 5
 
 class GraphWindow:
     def __init__(self):
