@@ -1,0 +1,8 @@
+1. pick 15 important companies for the nation 
+2. if continuos drop and rise is observed for last one month , then pick it
+3. if there is  drop where ltp price < ((last one month average + lowest of last one month) / 2), then buy
+4. buy size should be 10% of total cash
+5. if price rises such as ltp price > last one month average, sell
+
+
+(icici bank, adani ports , axis bank , hdfc bank, ntpc, powergrid corportation of india, tata steel , sunpharma, airtel , reliance industries, state bank of india, larsen and toubro )

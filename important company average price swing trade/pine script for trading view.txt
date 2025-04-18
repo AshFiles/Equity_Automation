@@ -1,0 +1,25 @@
+//@version=5
+// created on date Apr 19 2025
+indicator("20-Day Avg & Buy/Sell Signal", overlay=true)
+
+// Inputs
+length = 20
+
+// Calculations
+avg_20 = ta.sma(close, length)                   // Red line: 20-day average
+low_20 = ta.lowest(low, length)                  // Lowest of last 20 days
+green_line = (avg_20 + low_20) / 2               // Green line to indicate buying
+red_line = avg_20*1.025                          // Red line to indicate selling when ltp price > 2.5 % of avg
+
+// Plotting the lines
+plot(red_line, title="20-Day Average", color=color.red, linewidth=2)
+plot(green_line, title="Avg + Lowest / 2", color=color.green, linewidth=2)
+
+// Buy/Sell signal conditions
+buy_condition = close < green_line
+sell_condition = close > red_line
+
+// Show Buy/Sell labels on chart
+plotshape(buy_condition, title="Buy Signal", location=location.belowbar, color=color.green, style=shape.labelup, text="BUY", textcolor=color.white)
+plotshape(sell_condition, title="Sell Signal", location=location.abovebar, color=color.red, style=shape.labeldown, text="SELL", textcolor=color.white)
+
