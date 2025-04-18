@@ -16,6 +16,8 @@ so try to keep a date range of data where there is no active holding present for
 how to check that ?
 use trading view with pine script to make sure that in that date range, we have exited the market.
 '''
+# this target profit percent is % above the average at which we want to sell, not absolute percent increment
+target_profit_percent = 2.5
 
 class GraphWindow:
     def __init__(self):
@@ -56,7 +58,7 @@ class TradeAnalyzer:
         df['SMA_20'] = df['Close Price'].rolling(window=20).mean()
         df['Low_20'] = df['Low Price'].rolling(window=20).min()
         df['Green_Line'] = (df['SMA_20'] + df['Low_20']) / 2
-        df['Red_Line'] = df['SMA_20'] * 1.025
+        df['Red_Line'] = df['SMA_20'] * (1+ (target_profit_percent/100))
 
         df['Buy_Signal'] = df['Close Price'] < df['Green_Line']
         df['Sell_Signal'] = df['Close Price'] > df['Red_Line']
