@@ -1,5 +1,5 @@
-//@version=6
-indicator("DMA 20-50-100-200 Entry/Exit Strategy", overlay=true)
+//@version=5
+strategy("DMA 20-50-100-200 Entry/Exit Strategy", overlay=true)
 
 // ------------------------
 // Input Variables
@@ -22,47 +22,119 @@ ma50  = ta.sma(close, length50)
 ma20  = ta.sma(close, length20)
 
 // ------------------------
+// Market Position Conditions
+// ------------------------
+
+// "IN" condition: price < 20 < 50 < 100 < 200
+in_condition = (close < ma20) and (ma20 < ma50) and (ma50 < ma100) and (ma100 < ma200)
+
+// "OUT" condition: 200 < 100 < 50 < 20 < price
+out_condition = (ma200 < ma100) and (ma100 < ma50) and (ma50 < ma20) and (ma20 < close)
+
+// ------------------------
 // Entry and Exit Conditions
 // ------------------------
 
-// Define the Entry Condition: ma200 > ma100 > ma50 > ma20 > close
-entry_condition = (ma200 > ma100) and (ma100 > ma50) and (ma50 > ma20) and (ma20 > close)
+// Variables to track position and entry
+var float entry_price = na
+var int entry_bar = na
+target_profit_percent_per_year = 8.0
 
-// Define the Exit Condition: close > ma20 > ma50 > ma100 > ma200
-exit_condition = (close > ma20) and (ma20 > ma50) and (ma50 > ma100) and (ma100 > ma200)
+if (strategy.position_size == 0 and in_condition)
+    entry_price := close
+    entry_bar := bar_index
+
+// Calculate holding duration in years (assuming 252 trading days per year)
+holding_duration_days = bar_index - entry_bar
+holding_duration_years = holding_duration_days / 252
+
+// Calculate target profit percentage based on holding duration,i.e. in multiple of years of holding duration to the target percent
+target_profit_percent = target_profit_percent_per_year + (math.floor(holding_duration_years) * target_profit_percent_per_year)
+
+// Calculate current profit percentage
+current_profit_percent = ((close - entry_price) / entry_price) * 100
+
+// Exit conditions
+exit_long = strategy.position_size > 0 and
+           current_profit_percent >= target_profit_percent and
+           current_profit_percent > 0  // Never exit at loss
+
+// ------------------------
+// Strategy Orders
+// ------------------------
+
+if (in_condition and strategy.position_size == 0)
+    strategy.entry("Long", strategy.long)
+
+if (exit_long)
+    strategy.close("Long")
 
 // ------------------------
 // Plotting Moving Averages
 // ------------------------
 
-// Plot the Moving Averages with Distinct Colors
 plot(ma200, color=color.red,    title="200 SMA")
-plot(ma100, color=color.orange, title="100 SMA")
-plot(ma50,  color=color.purple, title="50 SMA")
-plot(ma20,  color=color.green,  title="20 SMA")
+plot(ma100, color=color.green, title="100 SMA")
+plot(ma50,  color=color.blue, title="50 SMA")
+plot(ma20,  color=color.purple,  title="20 SMA")
 
 // ------------------------
-// Plotting Entry and Exit Markers
+// Plotting Market Position Markers
 // ------------------------
 
-// Plot Entry Signals
-plotshape(    entry_condition,     title="Entry Signal",     location=location.belowbar,     color=color.green,     style=shape.labelup,     size=size.large,     text="ENTRY",     textcolor=color.white)
+// Plot "IN" markers
+plotshape(in_condition, 
+         title="IN Signal", 
+         location=location.belowbar, 
+         color=color.rgb(59, 195, 66), 
+         style=shape.labelup, 
+         size=size.small, 
+         text="",  // removed 'in' text to remove clutter from graph
+         textcolor=color.white)
 
-// Plot Exit Signals
-plotshape(exit_condition,     title="Exit Signal",     location=location.abovebar,     color=color.red,     style=shape.labeldown,     size=size.large,     text="EXIT",     textcolor=color.white)
+// Plot "OUT" markers
+plotshape(out_condition, 
+         title="OUT Signal", 
+         location=location.abovebar, 
+         color=color.rgb(212, 68, 68), 
+         style=shape.labeldown, 
+         size=size.small, 
+         text="", // removed 'out' text to remove clutter from graph
+         textcolor=color.white)
 
 // ------------------------
-// Optional: Background Highlighting
+// Plotting Entry/Exit Strategy Markers
 // ------------------------
 
-// Highlight the background for easy visualization (Optional)
-bgcolor(entry_condition ? color.new(color.green, 90) : na, title="Bullish Background")
-bgcolor(exit_condition  ? color.new(color.red, 90)   : na, title="Bearish Background")
+// Plot Strategy Entry
+plotshape(in_condition and strategy.position_size == 0, 
+         title="Strategy Entry", 
+         location=location.belowbar, 
+         color=color.rgb(26, 133, 18), 
+         style=shape.triangleup, 
+         size=size.large)
+
+// Plot Strategy Exit
+plotshape(exit_long, 
+         title="Strategy Exit", 
+         location=location.abovebar, 
+         color=color.rgb(141, 25, 25), 
+         style=shape.triangledown, 
+         size=size.large)
 
 // ------------------------
-// Alert Conditions (Optional)
+// Background Highlighting
 // ------------------------
 
-// Enable alert conditions to receive notifications
-alertcondition(entry_condition, title="Entry Alert", message="DMA Entry Condition Met")
-alertcondition(exit_condition,  title="Exit Alert",  message="DMA Exit Condition Met")
+// Highlight the background based on market position
+bgcolor(in_condition ? color.new(color.green, 90) : 
+       out_condition ? color.new(color.red, 90) : na, 
+       title="Position Background")
+
+// ------------------------
+// Alert Conditions
+// ------------------------
+
+alertcondition(in_condition, title="IN Position Alert", message="Market in IN position")
+alertcondition(out_condition, title="OUT Position Alert", message="Market in OUT position")
+alertcondition(exit_long, title="Exit Alert", message="Exit signal triggered")
