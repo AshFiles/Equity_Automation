@@ -76,7 +76,7 @@ if (exit_long)
 plot(ma200, color=color.red,    title="200 SMA")
 plot(ma100, color=color.green, title="100 SMA")
 plot(ma50,  color=color.blue, title="50 SMA")
-plot(ma20,  color=color.purple,  title="20 SMA")
+plot(ma20,  color=color.yellow,  title="20 SMA")
 
 // ------------------------
 // Plotting Market Position Markers
